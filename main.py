@@ -50,7 +50,7 @@ def analyze_news(news_list):
         
     news_text = "\n".join(news_list)
     
-prompt = f"""
+    prompt = f"""
 あなたは人材紹介業の優秀なマネージャーです。以下のニュース一覧から、キャリアアドバイザー（CA）が求職者との面談で最も使える記事を1つ選び、以下の【出力フォーマット】に厳密に従って出力してください。
 
 【出力フォーマット】
@@ -75,7 +75,7 @@ prompt = f"""
 
 【ニュース一覧】
 {news_text}
-"""
+    """
     
     # モデルの初期化 (gemini-2.5-flashを使用)
     try:
