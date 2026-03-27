@@ -38,6 +38,15 @@ def fetch_news():
     for i, entry in enumerate(entries[:20]):
         title = entry.title
         link = entry.link
+        
+        # URLが長いため、is.gd APIで短縮URLに変換する
+        try:
+            res = requests.get('https://is.gd/create.php', params={'format': 'simple', 'url': link}, timeout=5)
+            if res.status_code == 200 and res.text.startswith("http"):
+                link = res.text
+        except Exception as e:
+            print(f"URL shortener error: {e}")
+            
         news_list.append(f"[{i+1}] タイトル: {title}\nURL: {link}\n")
         
     return news_list
