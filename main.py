@@ -10,6 +10,7 @@ import google.generativeai as genai
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
 SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID")
+AI_INSIGHT = os.getenv("AI_INSIGHT", "")
 
 if not GEMINI_API_KEY or not SLACK_BOT_TOKEN or not SLACK_CHANNEL_ID:
     print("Error: GEMINI_API_KEY, SLACK_BOT_TOKEN, or SLACK_CHANNEL_ID is not set.")
@@ -52,7 +53,7 @@ def fetch_news():
         
     return news_list
 
-def analyze_news(news_list):
+def analyze_news(news_list, ai_insight=""):
     """取得したニュースリストから最も営業に使える1件をAIに選定・要約させる"""
     print("Analyzing news with Gemini API...")
     if not news_list:
@@ -60,9 +61,16 @@ def analyze_news(news_list):
         
     news_text = "\n".join(news_list)
     
+    insight_prompt = ""
+    if ai_insight:
+        insight_prompt = f"""
+過去の評価データに基づいた最新の選定基準： {ai_insight}
+上記の知見を最大限に考慮し、サイグナス信託のCA（キャリアアドバイザー）に最も刺さる記事を選定してください。
+"""
+
     prompt = f"""
 あなたは人材紹介業の優秀なマネージャーです。以下のニュース一覧から、キャリアアドバイザー（CA）が求職者との面談で最も使える記事を1つ選び、以下の【出力フォーマット】に厳密に従って出力してください。
-
+{insight_prompt}
 【出力フォーマット】
 *1.タイトル: [記事のタイトル]*
 
@@ -171,7 +179,7 @@ def main():
         print("News extraction skipped due to empty list.")
         return
         
-    content = analyze_news(news_list)
+    content = analyze_news(news_list, AI_INSIGHT)
     if not content:
         print("Analysis failed.")
         return

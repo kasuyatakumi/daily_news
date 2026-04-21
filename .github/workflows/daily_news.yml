@@ -2,6 +2,11 @@ name: Daily News Delivery to Slack
 
 on:
   workflow_dispatch:
+    inputs:
+      ai_insight:
+        description: 'AIによるフィードバック分析結果'
+        required: false
+        type: string
 
 jobs:
   run-daily-news:
@@ -25,5 +30,6 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL_ID: ${{ secrets.SLACK_CHANNEL_ID }}
+          AI_INSIGHT: ${{ github.event.inputs.ai_insight }}
         run: |
           python main.py
