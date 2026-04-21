@@ -111,12 +111,13 @@ def post_to_slack(content):
     jst = pytz.timezone('Asia/Tokyo')
     today_str = datetime.datetime.now(jst).strftime("%Y年%m月%d日")
     
-    evaluation_text = """---
-*【📊 今日のニュース評価】*
+    evaluation_text = """```
+【📊 今日のニュース評価】
 今後の配信精度向上のため、ポチッと評価をお願いします！
 🔥：最高！（面談で即出しレベル）
 👍：参考になる！（知識としてストック）
-🤔：うーん…（現場では使いにくいかも）"""
+🤔：うーん…（現場では使いにくいかも）
+```"""
 
     # Slackメッセージの整形
     post_text = f"📰 *本日の営業に使えるニュース ({today_str})*\n\n{content}\n\n{evaluation_text}"
@@ -128,7 +129,9 @@ def post_to_slack(content):
     
     payload = {
         "channel": SLACK_CHANNEL_ID,
-        "text": post_text
+        "text": post_text,
+        "unfurl_links": False,
+        "unfurl_media": False
     }
     
     post_url = "https://slack.com/api/chat.postMessage"
