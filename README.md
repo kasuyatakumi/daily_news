@@ -13,17 +13,19 @@
 事前に以下のAPIキーやトークンなどを準備してください。
 1. **Gemini API Key**
    - [Google AI Studio](https://aistudio.google.com/) からAPIキーを発行します。
-2. **Slack Incoming Webhook URL**
-   - Slackアプリの「Incoming WebHooks」を作成・追加し、投稿先チャンネルを指定してWebhook URLを取得します。
+2. **Slack Bot Token & Channel ID**
+   - Slack Appを作成し、`chat:write` と `reactions:write` のBot Token Scopesを設定してBot User OAuth Token (`xoxb-`から始まる) を取得します。
+   - 投稿先チャンネルのチャンネルIDを取得します。
 3. **GitHub Personal Access Token (PAT)**
    - GitHubの [Personal Access Tokens](https://github.com/settings/tokens) ページでトークン（classic推奨、またはFine-grained）を発行します。
    - スコープとして `workflow` （または `repo` 全員）にチェックを入れてください。
 
 ### 2. GitHub リポジトリの設定
 1. 本コード一式をGitHubの新規リポジトリにPushします。
-2. リポジトリの `Settings > Secrets and variables > Actions` を開き、以下の2つの **Repository secrets** を追加します。
+2. リポジトリの `Settings > Secrets and variables > Actions` を開き、以下の3つの **Repository secrets** を追加します。
    - `GEMINI_API_KEY`: 取得したGeminiのAPIキー
-   - `SLACK_WEBHOOK_URL`: SlackのWebhook URL
+   - `SLACK_BOT_TOKEN`: 取得したSlackのBotトークン
+   - `SLACK_CHANNEL_ID`: 投稿先のSlackチャンネルID
 
 ### 3. GAS (Google Apps Script) の設定とデプロイ
 1. Google Driveから新規のGoogle Apps Scriptプロジェクトを作成します。

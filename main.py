@@ -8,10 +8,11 @@ import google.generativeai as genai
 
 # 環境変数の読み込み
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-SLACK_WEBHOOK_URL = os.getenv("SLACK_WEBHOOK_URL")
+SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
+SLACK_CHANNEL_ID = os.getenv("SLACK_CHANNEL_ID")
 
-if not GEMINI_API_KEY or not SLACK_WEBHOOK_URL:
-    print("Error: GEMINI_API_KEY or SLACK_WEBHOOK_URL is not set.")
+if not GEMINI_API_KEY or not SLACK_BOT_TOKEN or not SLACK_CHANNEL_ID:
+    print("Error: GEMINI_API_KEY, SLACK_BOT_TOKEN, or SLACK_CHANNEL_ID is not set.")
     sys.exit(1)
 
 # APIキーの設定
@@ -100,7 +101,7 @@ def analyze_news(news_list):
         return None
 
 def post_to_slack(content):
-    """Slack Incoming Webhook経由で通知する"""
+    """Slack Bot APIを利用して通知し、評価用リアクションを付与する"""
     print("Posting to Slack...")
     if not content:
         print("No content to post.")
@@ -110,16 +111,55 @@ def post_to_slack(content):
     jst = pytz.timezone('Asia/Tokyo')
     today_str = datetime.datetime.now(jst).strftime("%Y年%m月%d日")
     
+    evaluation_text = """---
+*【📊 今日のニュース評価】*
+今後の配信精度向上のため、ポチッと評価をお願いします！
+🔥：最高！（面談で即出しレベル）
+👍：参考になる！（知識としてストック）
+🤔：うーん…（現場では使いにくいかも）"""
+
     # Slackメッセージの整形
-    payload = {
-        "text": f"📰 *本日の営業に使えるニュース ({today_str})*\n\n{content}"
+    post_text = f"📰 *本日の営業に使えるニュース ({today_str})*\n\n{content}\n\n{evaluation_text}"
+    
+    headers = {
+        "Authorization": f"Bearer {SLACK_BOT_TOKEN}",
+        "Content-Type": "application/json; charset=utf-8"
     }
     
-    response = requests.post(SLACK_WEBHOOK_URL, json=payload)
+    payload = {
+        "channel": SLACK_CHANNEL_ID,
+        "text": post_text
+    }
+    
+    post_url = "https://slack.com/api/chat.postMessage"
+    response = requests.post(post_url, headers=headers, json=payload)
+    
     if response.status_code != 200:
         print(f"Error posting to Slack: {response.status_code}, {response.text}")
-    else:
-        print("Successfully posted to Slack!")
+        return
+        
+    res_json = response.json()
+    if not res_json.get("ok"):
+        print(f"Slack API error: {res_json.get('error')}")
+        return
+        
+    print("Successfully posted to Slack!")
+    ts = res_json.get("ts")
+    
+    # リアクション（スタンプ）を自動付与
+    reactions = ["fire", "+1", "thinking_face"]
+    reaction_url = "https://slack.com/api/reactions.add"
+    
+    for reaction in reactions:
+        reaction_payload = {
+            "channel": SLACK_CHANNEL_ID,
+            "timestamp": ts,
+            "name": reaction
+        }
+        reaction_res = requests.post(reaction_url, headers=headers, json=reaction_payload)
+        reaction_json = reaction_res.json()
+        if not reaction_json.get("ok"):
+            print(f"Failed to add reaction '{reaction}': {reaction_json.get('error')}")
 
 def main():
     print("Starting process...")
